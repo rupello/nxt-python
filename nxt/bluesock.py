@@ -15,7 +15,11 @@
 try:
     import bluetooth
 except ImportError:
-    import lightblueglue as bluetooth
+    try:
+        import lightblueglue as bluetooth
+    except ImportError:
+        import androidblueglue as bluetooth
+
 from nxt.brick import Brick
 
 class BlueSock(object):
