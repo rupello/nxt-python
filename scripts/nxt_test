@@ -13,7 +13,7 @@ import nxt.locator
 import nxt.brick
 
 try:
-    b = nxt.locator.find_one_brick()
+    b = nxt.locator.find_one_brick(method=nxt.locator.Method(usb=False,bluetooth=True),debug=True)
     name, host, signal_strength, user_flash = b.get_device_info()
     print 'NXT brick name: %s' % name
     print 'Host address: %s' % host
