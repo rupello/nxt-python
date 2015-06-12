@@ -77,7 +77,10 @@ class BlueSock(object):
 def _check_brick(arg, value):
     return arg is None or arg == value
 
+import time
+
 def find_bricks(host=None, name=None):
     for h, n in bluetooth.discover_devices(lookup_names=True):
+        time.sleep(.1)
         if _check_brick(host, h) and _check_brick(name, n):
             yield BlueSock(h)
