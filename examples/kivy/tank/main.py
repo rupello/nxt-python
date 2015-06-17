@@ -6,6 +6,7 @@ from kivy.clock import Clock
 from kivy.uix.screenmanager import ScreenManager, Screen, SlideTransition
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.slider import Slider
+from kivy.animation import Animation
 
 try:
     from jnius import detach
@@ -17,6 +18,14 @@ import nxt
 import nxt.bluesock
 import nxt.brick
 
+
+class SelfCenteringSlider(Slider):
+    """center the center automatically if released"""
+    def on_touch_up(self, touch):
+        if self.collide_point(touch.pos[0], touch.pos[1]):
+            Animation(value=0,duration=.2,t='out_back').start(self)
+
+
 class TankApp(App):
 
     def build(self):
@@ -25,20 +34,19 @@ class TankApp(App):
         self.init_log()
         self._doc = RstDocument(text='')
 
-        search_screen = Screen(name='search')
-        search_screen.add_widget(self._doc)
-        self.manager.add_widget(search_screen)
+        #search_screen = Screen(name='search')
+        #search_screen.add_widget(self._doc)
+        #self.manager.add_widget(search_screen)
 
         tank_screen = Screen(name='tank')
         layout = BoxLayout(orientation='horizontal')
-        leftSlider = Slider(min=-100, max=100, value=0,orientation='vertical')
-        rightSlider = Slider(min=-100, max=100, value=0,orientation='vertical')
+        leftSlider = SelfCenteringSlider(min=-100, max=100, value=0,orientation='vertical')
+        rightSlider = SelfCenteringSlider(min=-100, max=100, value=0,orientation='vertical')
         layout.add_widget(leftSlider)
         layout.add_widget(rightSlider)
         tank_screen.add_widget(layout)
         self.manager.add_widget(tank_screen)
 
-        #self.manager.current = 'search'
         self.manager.current = 'tank'
         return self.manager
 
@@ -55,10 +63,10 @@ class TankApp(App):
 
     def on_start(self):
         self._brick = None
-        self._connect_thread = threading.Thread(target=self.find_brick)
-        self._connect_thread.start()
+        #self._connect_thread = threading.Thread(target=self.find_brick)
+        #self._connect_thread.start()
         Clock.schedule_interval(self.update_displayed_text, 0.5)
-        Clock.schedule_interval(self.check_brick_connection, 1.5)
+        #Clock.schedule_interval(self.check_brick_connection, 1.5)
 
     def check_brick_connection(self,dt):
         """wait for find_brick thread to complete, then print info"""
@@ -93,6 +101,8 @@ class TankApp(App):
     def start_tank(self,dt):
         self.manager.current = 'tank'
 
+    def on_touch_down(self, touch):
+        print touch
 
 if __name__ == '__main__':
     TankApp().run()
