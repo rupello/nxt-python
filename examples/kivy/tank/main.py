@@ -1,4 +1,5 @@
 import threading
+import time
 
 from kivy.uix.rst import RstDocument
 from kivy.app import App
@@ -17,6 +18,7 @@ except:
 import nxt
 import nxt.bluesock
 import nxt.brick
+import nxt.motor
 
 
 class SelfCenteringSlider(Slider):
@@ -34,20 +36,20 @@ class TankApp(App):
         self.init_log()
         self._doc = RstDocument(text='')
 
-        #search_screen = Screen(name='search')
-        #search_screen.add_widget(self._doc)
-        #self.manager.add_widget(search_screen)
+        search_screen = Screen(name='search')
+        search_screen.add_widget(self._doc)
+        self.manager.add_widget(search_screen)
 
         tank_screen = Screen(name='tank')
         layout = BoxLayout(orientation='horizontal')
-        leftSlider = SelfCenteringSlider(min=-100, max=100, value=0,orientation='vertical')
-        rightSlider = SelfCenteringSlider(min=-100, max=100, value=0,orientation='vertical')
-        layout.add_widget(leftSlider)
-        layout.add_widget(rightSlider)
+        self._leftSlider = SelfCenteringSlider(min=-100, max=100, value=0,orientation='vertical')
+        self._rightSlider = SelfCenteringSlider(min=-100, max=100, value=0,orientation='vertical')
+        layout.add_widget(self._leftSlider)
+        layout.add_widget(self._rightSlider)
         tank_screen.add_widget(layout)
         self.manager.add_widget(tank_screen)
 
-        self.manager.current = 'tank'
+        self.manager.current = 'search'
         return self.manager
 
     def init_log(self):
@@ -63,10 +65,10 @@ class TankApp(App):
 
     def on_start(self):
         self._brick = None
-        #self._connect_thread = threading.Thread(target=self.find_brick)
-        #self._connect_thread.start()
+        self._connect_thread = threading.Thread(target=self.find_brick)
+        self._connect_thread.start()
         Clock.schedule_interval(self.update_displayed_text, 0.5)
-        #Clock.schedule_interval(self.check_brick_connection, 1.5)
+        Clock.schedule_interval(self.check_brick_connection, 1.5)
 
     def check_brick_connection(self,dt):
         """wait for find_brick thread to complete, then print info"""
@@ -99,7 +101,17 @@ class TankApp(App):
         self._doc.scroll_y = 0  # scroll to bottom
 
     def start_tank(self,dt):
+        self._motleft = nxt.motor.Motor(self._brick, nxt.motor.PORT_B)
+        self._motright = nxt.motor.Motor(self._brick, nxt.motor.PORT_C)
         self.manager.current = 'tank'
+        Clock.schedule_interval(self.update_motors, 0.1)
+
+    def update_motors(self,dt):
+        start = time.time()
+        self._motleft.run(power=self._leftSlider.value)
+        self._motright.run(power=self._rightSlider.value)
+        interval = time.time()-start
+        print('updated in:{:.03}'.format(interval))
 
     def on_touch_down(self, touch):
         print touch
