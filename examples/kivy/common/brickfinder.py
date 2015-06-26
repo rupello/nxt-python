@@ -19,7 +19,7 @@ except:
 class LogDisplayWidget(RstDocument):
     def __init__(self, title='',**kwargs):
         self._logbuffer = [title,
-                           '========',
+                           '='*len(title),
                            '::',
                            '']
         Clock.schedule_interval(self.update_displayed_text, 0.5)
