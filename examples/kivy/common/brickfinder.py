@@ -3,6 +3,7 @@ __author__ = 'rupello'
 import threading
 
 from kivy.uix.rst import RstDocument
+from kivy.uix.popup import Popup
 from kivy.clock import Clock
 from kivy.properties import ObjectProperty
 
@@ -93,3 +94,14 @@ class BrickFinderWidget(LogDisplayWidget):
                 # force a property dispatch to let observer know brick is not found
                 prop = self.property('brick')
                 prop.dispatch(self)
+
+
+def popup_finder(callback):
+    """show the finder in a popup, calling <callback> on completion"""
+    bfw = BrickFinderWidget(start=True)
+    bfw.bind(brick=callback)
+    popup = Popup(title='', content=bfw,
+                  auto_dismiss=False,
+                  size_hint=(0.6,0.8))
+    bfw.bind(brick=popup.dismiss)
+    popup.open()

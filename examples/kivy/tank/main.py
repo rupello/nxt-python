@@ -1,26 +1,13 @@
-import threading
 import time
-
-from kivy.uix.rst import RstDocument
 from kivy.app import App
 from kivy.clock import Clock
-from kivy.uix.screenmanager import ScreenManager, Screen, SlideTransition
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.slider import Slider
 from kivy.animation import Animation
 
-from brickfinder import BrickFinderWidget
-try:
-    from jnius import detach
-except:
-    def detach():
-        pass
-
-import nxt
-import nxt.bluesock
-import nxt.brick
 import nxt.motor
 
+from examples.kivy.common.brickfinder import popup_finder
 
 class SelfCenteringSlider(Slider):
     """center the center automatically if released"""
@@ -28,44 +15,20 @@ class SelfCenteringSlider(Slider):
         if self.collide_point(touch.pos[0], touch.pos[1]):
             Animation(value=0,duration=.2,t='out_back').start(self)
 
-
-class TankApp(App):
-
-    def build(self):
-        self.manager = ScreenManager(transition=SlideTransition(
-            duration=.15))
-
-        bfw = BrickFinderWidget(title='Tank Demo', start=True)
-        bfw.bind(brick=self.brickfound_callback)
-        search_screen = Screen(name='search')
-        search_screen.add_widget(bfw)
-        self.manager.add_widget(search_screen)
-
-        tank_screen = Screen(name='tank')
-        layout = BoxLayout(orientation='horizontal')
+class TankWidget(BoxLayout):
+    def __init__(self,**kwargs):
+        super(TankWidget, self).__init__(**kwargs)
+        self.padding = [0, 20, 0, 20]
+        self.orientation = 'horizontal'
+        self.tank = None
         self._leftSlider = SelfCenteringSlider(min=-100, max=100, value=0,orientation='vertical')
         self._rightSlider = SelfCenteringSlider(min=-100, max=100, value=0,orientation='vertical')
-        layout.add_widget(self._leftSlider)
-        layout.add_widget(self._rightSlider)
-        tank_screen.add_widget(layout)
-        self.manager.add_widget(tank_screen)
-
-        self.manager.current = 'search'
-        return self.manager
-
-    def brickfound_callback(self, instance, brick):
-        if brick:
-            print('we found it :-)')
-            self._brick = brick
-            Clock.schedule_once(self.start_tank,1.0)
-        else:
-            print('no brick :-(')
-            self.c
+        self.add_widget(self._leftSlider)
+        self.add_widget(self._rightSlider)
 
     def start_tank(self,dt):
-        self._motleft = nxt.motor.Motor(self._brick, nxt.motor.PORT_B)
-        self._motright = nxt.motor.Motor(self._brick, nxt.motor.PORT_C)
-        self.manager.current = 'tank'
+        self._motleft = nxt.motor.Motor(self.brick, nxt.motor.PORT_B)
+        self._motright = nxt.motor.Motor(self.brick, nxt.motor.PORT_C)
         Clock.schedule_interval(self.update_motors, 0.1)
 
     def update_motors(self,dt):
@@ -77,6 +40,27 @@ class TankApp(App):
 
     def on_touch_down(self, touch):
         print touch
+        return super(TankWidget, self).on_touch_down(touch)
+
+
+class TankApp(App):
+
+    def build(self):
+        self._tank = TankWidget()
+        return self._tank
+
+    def on_start(self):
+        popup_finder(self.brickfound_callback)
+
+    def brickfound_callback(self, instance, brick):
+        if brick:
+            print('we found it :-)')
+            self._tank.brick = brick
+            Clock.schedule_once(self._tank.start_tank,1.0)
+        else:
+            print('no brick :-(')
+            self.stop()
+
 
 if __name__ == '__main__':
     TankApp().run()

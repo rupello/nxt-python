@@ -1,5 +1,6 @@
 from kivy.app import App
-from brickfinder import BrickFinderWidget
+
+from examples.kivy.common.brickfinder import BrickFinderWidget
 
 class InfoApp(App):
     def build(self):
