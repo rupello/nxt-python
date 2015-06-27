@@ -5,7 +5,8 @@ import threading
 from kivy.uix.rst import RstDocument
 from kivy.uix.popup import Popup
 from kivy.clock import Clock
-from kivy.properties import ObjectProperty
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
 
 import nxt
 
@@ -61,10 +62,10 @@ class BrickFinderWidget(LogDisplayWidget):
     """
        A Widget that shows search progress and support s property
     """
-    brick = ObjectProperty(None, allownone=True)
 
     def __init__(self,title='Connecting to Brick...',start=False,**kwargs):
         self._bf = BrickFinder()
+        self.register_event_type('on_search_complete')
         if start:
             self.start()
         super(BrickFinderWidget, self).__init__(title,**kwargs)
@@ -91,17 +92,35 @@ class BrickFinderWidget(LogDisplayWidget):
             else:
                 self.log(' brick not found :-(')
                 self.log(' Check brick is powered on and paired.')
-                # force a property dispatch to let observer know brick is not found
-                prop = self.property('brick')
-                prop.dispatch(self)
+            # notify observers
+            self.dispatch('on_search_complete', self._bf.brick)
+
+    def on_search_complete(self, *args):
+        pass
+
+class BrickFinderDialogWidget(BoxLayout):
+    def __init__(self,**kwargs):
+        super(BrickFinderDialogWidget, self).__init__(**kwargs)
+        self.orientation = 'vertical'
+        self._bfw = BrickFinderWidget(start=True)
+        self.add_widget(self._bfw)
+        self._bfw.bind(on_search_complete=self.on_search_complete)
+        self.btnOK = Button(text='OK',size_hint=(1, .2),disabled=True)
+        self.add_widget(self.btnOK)
+
+    def on_search_complete(self,instance,brick):
+        self._bf = instance
+        self._brick = brick
+        self.btnOK.disabled = False
+
 
 
 def popup_finder(callback):
     """show the finder in a popup, calling <callback> on completion"""
-    bfw = BrickFinderWidget(start=True)
-    bfw.bind(brick=callback)
-    popup = Popup(title='', content=bfw,
+    bfdw = BrickFinderDialogWidget()
+    popup = Popup(title='', content=bfdw,
                   auto_dismiss=False,
                   size_hint=(0.6,0.8))
-    bfw.bind(brick=popup.dismiss)
+    bfdw.btnOK.bind(on_press=popup.dismiss)
+    bfdw.btnOK.bind(on_press=lambda x: callback(bfdw._brick))
     popup.open()

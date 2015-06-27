@@ -36,8 +36,8 @@ class TankWidget(BoxLayout):
 
 Builder.load_string("""
 <TankController@CenteringSlider>:
-    min:-100
-    max:100
+    min:-127
+    max:127
     value:0
     orientation: 'vertical'
 
@@ -59,7 +59,7 @@ class TankApp(App):
     def on_start(self):
         popup_finder(self.brickfound_callback)
 
-    def brickfound_callback(self, instance, brick):
+    def brickfound_callback(self, brick):
         if brick:
             print('we found it :-)')
             self._tank.brick = brick

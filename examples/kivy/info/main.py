@@ -5,10 +5,10 @@ from examples.kivy.common.brickfinder import BrickFinderWidget
 class InfoApp(App):
     def build(self):
         bfw = BrickFinderWidget(title='NXT Demo',start=True)
-        bfw.bind(brick=self.brickfound_callback)
+        bfw.bind(on_search_complete=self.brickfound_callback)
         return bfw
 
-    def brickfound_callback(self, instance, brick):
+    def brickfound_callback(self, finder_widget, brick):
         if brick:
             print('we found it :-)')
         else:
