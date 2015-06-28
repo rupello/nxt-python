@@ -8,7 +8,7 @@ from kivy.lang import Builder
 
 import nxt.motor
 
-from examples.kivy.common.brickfinder import popup_finder
+from common.brickfinder import popup_finder
 
 class CenteringSlider(Slider):
     """center automatically if released"""
@@ -28,8 +28,8 @@ class TankWidget(BoxLayout):
 
     def update_motors(self,dt):
         start = time.time()
-        self._motleft.run(power=self.ids.left_slider.value)
-        self._motright.run(power=self.ids.right_slider.value)
+        self._motleft.run(power=self.ids.left_slider.value,regulated=True)
+        self._motright.run(power=self.ids.right_slider.value,regulated=True)
         interval = time.time()-start
         print('updated in:{:.03}'.format(interval))
 
