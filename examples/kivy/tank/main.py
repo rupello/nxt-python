@@ -28,8 +28,9 @@ class TankWidget(BoxLayout):
 
     def update_motors(self,dt):
         start = time.time()
-        self._motleft.run(power=self.ids.left_slider.value,regulated=True)
-        self._motright.run(power=self.ids.right_slider.value,regulated=True)
+        is_regulated = self.ids.regulate_check.active
+        self._motleft.run(power=self.ids.left_slider.value,regulated=is_regulated)
+        self._motright.run(power=self.ids.right_slider.value,regulated=is_regulated)
         interval = time.time()-start
         print('updated in:{:.03}'.format(interval))
 
@@ -42,12 +43,24 @@ Builder.load_string("""
     orientation: 'vertical'
 
 <TankWidget>:
-    orientation: 'horizontal'
-    padding: 0,30,0,30
-    TankController:
-        id:left_slider
-    TankController:
-        id:right_slider
+    orientation: 'vertical'
+    FloatLayout:
+        orientation: 'horizontal'
+        size_hint_y: 0.2
+        Label:
+            text: "Regulate Speed:"
+            pos_hint: {'x':0,'y':0}
+        CheckBox:
+            id:regulate_check
+            pos_hint: {'x':0.2,'y':0}
+            active: True
+    BoxLayout:
+        orientation: 'horizontal'
+        padding: 0,30,0,30
+        TankController:
+            id:left_slider
+        TankController:
+            id:right_slider
 """)
 
 
@@ -57,6 +70,7 @@ class TankApp(App):
         return self._tank
 
     def on_start(self):
+        pass
         popup_finder(self.brickfound_callback)
 
     def brickfound_callback(self, brick):
